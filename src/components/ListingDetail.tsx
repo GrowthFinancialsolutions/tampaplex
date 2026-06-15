@@ -1,20 +1,46 @@
-import type { Computed, Listing } from '../types'
+import type { Assumptions, Computed, Listing } from '../types'
 import type { Overrides } from '../lib/favorites'
 import { ScoreBadge } from './ScoreBadge'
+import { Verdict } from './Verdict'
+import { NotesField } from './NotesField'
 import { usd, usd2, pct } from '../lib/format'
+import { equityProjection, fhaLoan } from '../lib/math'
+import { TAMPA } from '../lib/tampa'
 
 interface Props {
   listing: Listing
   computed: Computed
+  assumptions: Assumptions
   override: Overrides | undefined
   onOverride: (id: string, patch: Overrides) => void
+  note: string
+  onNote: (id: string, v: string) => void
   onClose: () => void
 }
 
-export function ListingDetail({ listing, computed, override, onOverride, onClose }: Props) {
+export function ListingDetail({
+  listing,
+  computed,
+  assumptions,
+  override,
+  onOverride,
+  note,
+  onNote,
+  onClose,
+}: Props) {
   const rent = override?.rentTotal ?? listing.rentTotal
   const ins = override?.insuranceAnnual ?? listing.insuranceAnnual
   const tenantRent = (rent * (listing.units - 1)) / listing.units
+
+  const { loan } = fhaLoan(listing.price, assumptions)
+  const proj = equityProjection({
+    price: listing.price,
+    loan,
+    annualRate: assumptions.rateAnnual,
+    termYears: assumptions.termYears,
+    appreciationAnnual: TAMPA.appreciationDefault,
+    years: 5,
+  })
 
   return (
     <div
@@ -33,6 +59,10 @@ export function ListingDetail({ listing, computed, override, onOverride, onClose
             </p>
           </div>
           <ScoreBadge score={computed.dealScore} size="lg" />
+        </div>
+
+        <div className="mt-4">
+          <Verdict units={listing.units} computed={computed} />
         </div>
 
         {!computed.fhaSelfSufficient && (
@@ -89,6 +119,24 @@ export function ListingDetail({ listing, computed, override, onOverride, onClose
             value={ins}
             onChange={(v) => onOverride(listing.id, { insuranceAnnual: v })}
           />
+        </section>
+
+        <section className="mt-5 rounded-lg bg-slate-50 p-3">
+          <p className="text-sm font-medium text-slate-700">Where you’d likely stand in 5 years</p>
+          <p className="text-xs text-slate-500">
+            Estimate only — assumes {(TAMPA.appreciationDefault * 100).toFixed(0)}%/yr appreciation
+            and on-time payments. Not a promise.
+          </p>
+          <p className="mt-1 text-lg font-semibold text-slate-900">
+            ~{usd(proj.estimatedEquity)} in equity
+          </p>
+          <p className="text-xs text-slate-500">
+            Home value ~{usd(proj.futureValue)} · loan paid down to ~{usd(proj.loanBalance)}
+          </p>
+        </section>
+
+        <section className="mt-5">
+          <NotesField value={note} onChange={(v) => onNote(listing.id, v)} />
         </section>
 
         <button
