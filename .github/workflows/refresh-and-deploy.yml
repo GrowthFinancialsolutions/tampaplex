@@ -1,0 +1,53 @@
+name: Refresh data & deploy
+on:
+  schedule:
+    - cron: '0 9 * * *' # daily 09:00 UTC (~5am ET)
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+concurrency:
+  group: refresh-and-deploy
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+      - name: Refresh listings from RentCast
+        env:
+          RENTCAST_API_KEY: ${{ secrets.RENTCAST_API_KEY }}
+        run: npm run refresh
+      - name: Commit refreshed data
+        run: |
+          git config user.name "tampaplex-bot"
+          git config user.email "bot@users.noreply.github.com"
+          git add public/data/listings.json
+          git commit -m "chore: daily data refresh" || echo "no changes"
+          git push || echo "nothing to push"
+      - name: Build site
+        env:
+          GITHUB_PAGES_BASE: /${{ github.event.repository.name }}/
+        run: npm run build
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4
