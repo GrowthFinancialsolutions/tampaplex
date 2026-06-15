@@ -16,6 +16,9 @@ concurrency:
 jobs:
   build:
     runs-on: ubuntu-latest
+    env:
+      # 'true' only when the RENTCAST_API_KEY secret has been set in repo settings.
+      HAS_RENTCAST_KEY: ${{ secrets.RENTCAST_API_KEY != '' }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -24,16 +27,21 @@ jobs:
           cache: npm
       - run: npm ci
       - name: Refresh listings from RentCast
+        if: env.HAS_RENTCAST_KEY == 'true'
         env:
           RENTCAST_API_KEY: ${{ secrets.RENTCAST_API_KEY }}
         run: npm run refresh
       - name: Commit refreshed data
+        if: env.HAS_RENTCAST_KEY == 'true'
         run: |
           git config user.name "tampaplex-bot"
           git config user.email "bot@users.noreply.github.com"
           git add public/data/listings.json
           git commit -m "chore: daily data refresh" || echo "no changes"
           git push || echo "nothing to push"
+      - name: No RentCast key — deploy existing data
+        if: env.HAS_RENTCAST_KEY != 'true'
+        run: echo "No RENTCAST_API_KEY secret set. Deploying with the committed data. Add the secret in Settings → Secrets → Actions to pull live Tampa listings daily."
       - name: Build site
         env:
           GITHUB_PAGES_BASE: /${{ github.event.repository.name }}/
