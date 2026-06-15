@@ -4,8 +4,9 @@ import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { RentCastClient } from '../src/lib/rentcast'
 import { mergeListings } from '../src/lib/refresh-core'
+import { lookupFloodZone } from '../src/lib/flood'
 import { DEFAULT_ASSUMPTIONS, NEW_LISTING_DAYS } from '../src/config/assumptions'
-import type { Listing, ListingsFile } from '../src/types'
+import type { FloodZone, Listing, ListingsFile } from '../src/types'
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..')
 const DATA = join(ROOT, 'public', 'data', 'listings.json')
@@ -54,12 +55,28 @@ async function main() {
   }
   console.log(`Rent AVM fetched for ${spent} new listings. Total RentCast requests: ${client.requestCount}`)
 
+  // Flood zones via FEMA's free NFHL service (no key, no cost). Budgeted; carries
+  // forward from prior runs so we only look up listings we haven't seen before.
+  const prevById = new Map(prev.map((l) => [l.id, l]))
+  const floodById: Record<string, FloodZone> = {}
+  const floodBudget = Number(process.env.FLOOD_BUDGET ?? 40)
+  let floodSpent = 0
+  for (const r of raws) {
+    if (floodSpent >= floodBudget) break
+    if (prevById.get(r.id)?.floodZone) continue
+    if (r.latitude == null || r.longitude == null) continue
+    floodById[r.id] = await lookupFloodZone(r.latitude, r.longitude)
+    floodSpent++
+  }
+  console.log(`Flood zones looked up for ${floodSpent} listings (FEMA, free).`)
+
   const now = new Date().toISOString()
   const listings = mergeListings(raws, prev, {
     assumptions: DEFAULT_ASSUMPTIONS,
     now,
     newListingDays: NEW_LISTING_DAYS,
     rentByAddress,
+    floodById,
   })
   listings.sort((a, b) => b.computed.dealScore - a.computed.dealScore)
 
