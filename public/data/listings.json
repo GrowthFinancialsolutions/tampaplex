@@ -1,0 +1,212 @@
+{
+  "generatedAt": "2026-06-15T18:28:02.945Z",
+  "area": "Tampa, FL (SAMPLE DATA)",
+  "defaultAssumptions": {
+    "downPct": 0.035,
+    "rateAnnual": 0.069,
+    "termYears": 30,
+    "useFhaMip": true,
+    "fhaUpfrontMipPct": 0.0175,
+    "fhaAnnualMipPct": 0.0055,
+    "vacancyPct": 0.05,
+    "maintenancePct": 0.05,
+    "capexPct": 0.05,
+    "mgmtPct": 0.08,
+    "utilitiesMonthly": 0,
+    "closingPct": 0.03,
+    "scoreWeights": {
+      "houseHack": 0.35,
+      "cashOnCash": 0.3,
+      "capRate": 0.2,
+      "onePercent": 0.15
+    },
+    "scoreAnchors": {
+      "houseHack": [
+        0,
+        130
+      ],
+      "cashOnCash": [
+        0,
+        0.12
+      ],
+      "capRate": [
+        0.03,
+        0.08
+      ],
+      "onePercent": [
+        0.005,
+        0.012
+      ]
+    }
+  },
+  "listings": [
+    {
+      "id": "s3",
+      "address": "809 E Frierson Ave, Tampa, FL 33603",
+      "zip": "33603",
+      "beds": 8,
+      "baths": 4,
+      "sqft": 3400,
+      "propertyType": "Multi-Family",
+      "listedDate": "2026-05-06",
+      "firstSeen": "2026-06-15T18:28:02.945Z",
+      "daysOnMarket": 40,
+      "isNew": true,
+      "rentSource": "rentcast",
+      "taxSource": "estimated",
+      "price": 720000,
+      "units": 4,
+      "rentTotal": 7600,
+      "taxAnnual": 7920,
+      "insuranceAnnual": 7200,
+      "hoaMonthly": 0,
+      "computed": {
+        "rentPerUnit": 1900,
+        "mortgageMonthly": 4656.032911340203,
+        "mipMonthly": 324.022875,
+        "houseHackOutOfPocket": 1585.0557863402028,
+        "pctCostCovered": 78.24236584004956,
+        "fullRentalCashFlow": -388.0557863402031,
+        "capRate": 0.07653333333333333,
+        "cashOnCash": -0.09950148367697514,
+        "noiAnnual": 55104,
+        "onePercent": 0.010555555555555556,
+        "fhaSelfSufficient": false,
+        "cashInvested": 46800,
+        "dealScore": 51.58334757964704,
+        "scoreBreakdown": {
+          "houseHack": 60.18643526157659,
+          "cashOnCash": 0,
+          "capRate": 93.06666666666665,
+          "onePercent": 79.36507936507937
+        }
+      }
+    },
+    {
+      "id": "s2",
+      "address": "3010 W Cherry St, Tampa, FL 33607",
+      "zip": "33607",
+      "beds": 6,
+      "baths": 3,
+      "sqft": 2600,
+      "propertyType": "Multi-Family",
+      "listedDate": "2026-05-25",
+      "firstSeen": "2026-06-15T18:28:02.945Z",
+      "daysOnMarket": 21,
+      "isNew": true,
+      "rentSource": "rentcast",
+      "taxSource": "estimated",
+      "price": 575000,
+      "units": 3,
+      "rentTotal": 5400,
+      "taxAnnual": 6325,
+      "insuranceAnnual": 5750,
+      "hoaMonthly": 0,
+      "computed": {
+        "rentPerUnit": 1800,
+        "mortgageMonthly": 3718.3596166953007,
+        "mipMonthly": 258.76826822916667,
+        "houseHackOutOfPocket": 2103.3778849244673,
+        "pctCostCovered": 63.12048881621101,
+        "fullRentalCashFlow": -825.3778849244674,
+        "capRate": 0.06577565217391304,
+        "cashOnCash": -0.2650042707449795,
+        "noiAnnual": 37821,
+        "onePercent": 0.009391304347826087,
+        "fhaSelfSufficient": false,
+        "cashInvested": 37375,
+        "dealScore": 40.71417651597463,
+        "scoreBreakdown": {
+          "houseHack": 48.55422216631616,
+          "cashOnCash": 0,
+          "capRate": 71.55130434782609,
+          "onePercent": 62.732919254658384
+        }
+      }
+    },
+    {
+      "id": "s1",
+      "address": "1204 E 12th Ave, Tampa, FL 33605",
+      "zip": "33605",
+      "beds": 4,
+      "baths": 2,
+      "sqft": 1800,
+      "propertyType": "Multi-Family",
+      "listedDate": "2026-06-12",
+      "firstSeen": "2026-06-15T18:28:02.945Z",
+      "daysOnMarket": 3,
+      "isNew": true,
+      "rentSource": "rentcast",
+      "taxSource": "estimated",
+      "price": 389000,
+      "units": 2,
+      "rentTotal": 3400,
+      "taxAnnual": 4279,
+      "insuranceAnnual": 3890,
+      "hoaMonthly": 0,
+      "computed": {
+        "rentPerUnit": 1700,
+        "mortgageMonthly": 2515.551114599082,
+        "mipMonthly": 175.06235885416666,
+        "houseHackOutOfPocket": 2096.363473453249,
+        "pctCostCovered": 44.77969540818613,
+        "fullRentalCashFlow": -753.3634734532491,
+        "capRate": 0.059760925449871466,
+        "cashOnCash": -0.35753852803792724,
+        "noiAnnual": 23247,
+        "onePercent": 0.008740359897172237,
+        "fhaSelfSufficient": true,
+        "cashInvested": 25285,
+        "dealScore": 31.975498943126016,
+        "scoreBreakdown": {
+          "houseHack": 34.44591954475856,
+          "cashOnCash": 0,
+          "capRate": 59.52185089974294,
+          "onePercent": 53.43371281674624
+        }
+      }
+    },
+    {
+      "id": "s4",
+      "address": "2515 N Albany Ave, Tampa, FL 33607",
+      "zip": "33607",
+      "beds": 4,
+      "baths": 2,
+      "sqft": 1650,
+      "propertyType": "Multi-Family",
+      "listedDate": "2026-06-14",
+      "firstSeen": "2026-06-15T18:28:02.945Z",
+      "daysOnMarket": 1,
+      "isNew": true,
+      "rentSource": "rentcast",
+      "taxSource": "estimated",
+      "price": 349000,
+      "units": 2,
+      "rentTotal": 2900,
+      "taxAnnual": 3839,
+      "insuranceAnnual": 3490,
+      "hoaMonthly": 0,
+      "computed": {
+        "rentPerUnit": 1450,
+        "mortgageMonthly": 2256.882619524626,
+        "mipMonthly": 157.06108802083335,
+        "houseHackOutOfPocket": 1937.1937075454593,
+        "pctCostCovered": 42.80829870372979,
+        "fullRentalCashFlow": -791.6937075454595,
+        "capRate": 0.05577936962750717,
+        "cashOnCash": -0.41879323299737775,
+        "noiAnnual": 19467,
+        "onePercent": 0.00830945558739255,
+        "fhaSelfSufficient": true,
+        "cashInvested": 22685,
+        "dealScore": 28.928749584881185,
+        "scoreBreakdown": {
+          "houseHack": 32.929460541330606,
+          "cashOnCash": 0,
+          "capRate": 51.55873925501433,
+          "onePercent": 47.27793696275071
+        }
+      }
+    }
+  ]
+}
