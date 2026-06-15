@@ -62,22 +62,29 @@ npm test
 - `scripts/make-sample.ts` — generates offline sample data
 - `src/components/*` — the dashboard UI
 
-## Go live (free, ~10 minutes)
+## Live site
 
-The app can run as a free public website that refreshes itself daily — no servers,
-no monthly cost.
+**https://growthfinancialsolutions.github.io/tampaplex/** — published free via GitHub
+Pages, redeployed automatically every day (see
+`.github/workflows/refresh-and-deploy.yml`). No servers, no monthly cost.
 
-1. Create a new GitHub repository (e.g. `tampaplex`).
-2. Push this project:
-   ```bash
-   git remote add origin https://github.com/<you>/tampaplex.git
-   git push -u origin main
-   ```
-3. In the repo: **Settings → Secrets and variables → Actions → New repository
-   secret**. Name it `RENTCAST_API_KEY` and paste your RentCast key.
-4. **Settings → Pages → Build and deployment → Source: GitHub Actions.**
-5. **Actions** tab → "Refresh data & deploy" → **Run workflow** (the first run).
-   When it finishes, your site is live at `https://<you>.github.io/tampaplex/`.
+### One step left: turn on live Tampa data
 
-After that it refreshes the Tampa listings and redeploys automatically every day
-(see `.github/workflows/refresh-and-deploy.yml`).
+The site is live right now on **sample data**. To pull real current listings, add your
+free RentCast key as a repository secret — then the daily job switches to live data
+automatically (no key in the browser; it only lives in the encrypted secret):
+
+1. Get a free key at https://app.rentcast.io (free tier: 50 requests/month).
+2. In the repo: **Settings → Secrets and variables → Actions → New repository secret**.
+   Name it `RENTCAST_API_KEY`, paste your key, save.
+3. **Actions** tab → "Refresh data & deploy" → **Run workflow** (or just wait for the
+   next daily run).
+
+> Tip: from the project folder you can also run
+> `gh secret set RENTCAST_API_KEY` and paste the key when prompted.
+
+### Forking this for another city
+
+Change `city`/`state` in `scripts/refresh.ts`, adjust the Tampa specifics in
+`src/lib/tampa.ts`, push to your own public repo, enable Pages (Source: GitHub
+Actions), and add your `RENTCAST_API_KEY` secret.
