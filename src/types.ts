@@ -56,6 +56,16 @@ export interface Computed {
 export type RentSource = 'rentcast' | 'estimated' | 'manual'
 export type TaxSource = 'rentcast' | 'estimated'
 
+export type FloodRisk = 'high' | 'moderate' | 'low' | 'unknown'
+
+export interface FloodZone {
+  zone: string // raw FEMA FLD_ZONE, e.g. "AE", "X"
+  risk: FloodRisk
+}
+
+export type Rating = 'good' | 'okay' | 'concern'
+export type ViewMode = 'simple' | 'pro'
+
 export interface Listing extends ListingInputs {
   id: string
   address: string
@@ -73,6 +83,7 @@ export interface Listing extends ListingInputs {
   isNew: boolean
   rentSource: RentSource
   taxSource: TaxSource
+  floodZone?: FloodZone
   photoUrl?: string
   listingUrl?: string
   computed: Computed
