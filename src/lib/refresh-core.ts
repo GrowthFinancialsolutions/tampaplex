@@ -1,4 +1,4 @@
-import type { Assumptions, Computed, Listing, ListingInputs } from '../types'
+import type { Assumptions, Computed, FloodZone, Listing, ListingInputs } from '../types'
 import type { RawSaleListing } from './rentcast'
 import type { Overrides } from './favorites'
 import { computeMetrics } from './math'
@@ -27,6 +27,7 @@ export interface BuildOptions {
   now: string
   newListingDays: number
   rentByAddress?: Record<string, number>
+  floodById?: Record<string, FloodZone>
 }
 
 export function buildListing(
@@ -62,6 +63,8 @@ export function buildListing(
   const ageDays = (Date.parse(opts.now) - Date.parse(firstSeen)) / 86_400_000
   const isNew = ageDays <= opts.newListingDays
 
+  const floodZone = opts.floodById?.[raw.id] ?? prev?.floodZone
+
   return {
     id: raw.id,
     address,
@@ -79,6 +82,7 @@ export function buildListing(
     isNew,
     rentSource,
     taxSource: 'estimated',
+    floodZone,
     photoUrl: undefined,
     listingUrl: undefined,
     price,

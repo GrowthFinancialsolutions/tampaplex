@@ -4,9 +4,10 @@ import {
   estimateUnits,
   estimateInsuranceAnnual,
   recompute,
+  buildListing,
 } from './refresh-core'
 import { DEFAULT_ASSUMPTIONS } from '../config/assumptions'
-import type { Listing } from '../types'
+import type { FloodZone, Listing } from '../types'
 import type { RawSaleListing } from './rentcast'
 
 const NOW = '2026-06-15T12:00:00.000Z'
@@ -99,5 +100,37 @@ describe('recompute', () => {
     })[0]
     const bumped = recompute(base, { rentTotal: base.rentTotal + 2000 }, DEFAULT_ASSUMPTIONS)
     expect(bumped.dealScore).toBeGreaterThan(base.computed.dealScore)
+  })
+})
+
+describe('buildListing flood zone', () => {
+  const floodRaw = {
+    id: 'x1',
+    price: 600000,
+    bedrooms: 6,
+    zipCode: '33606',
+    latitude: 27.9,
+    longitude: -82.5,
+  }
+
+  it('attaches a provided flood zone', () => {
+    const fz: FloodZone = { zone: 'AE', risk: 'high' }
+    const built = buildListing(floodRaw as RawSaleListing, undefined, {
+      assumptions: DEFAULT_ASSUMPTIONS,
+      now: NOW,
+      newListingDays: 7,
+      floodById: { x1: fz },
+    })
+    expect(built.floodZone).toEqual(fz)
+  })
+
+  it('carries the previous flood zone when none is provided', () => {
+    const prev = { floodZone: { zone: 'X', risk: 'low' } } as Listing
+    const built = buildListing(floodRaw as RawSaleListing, prev, {
+      assumptions: DEFAULT_ASSUMPTIONS,
+      now: NOW,
+      newListingDays: 7,
+    })
+    expect(built.floodZone).toEqual({ zone: 'X', risk: 'low' })
   })
 })
