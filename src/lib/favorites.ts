@@ -1,3 +1,5 @@
+import type { ViewMode } from '../types'
+
 export interface Overrides {
   rentTotal?: number
   insuranceAnnual?: number
@@ -9,12 +11,14 @@ export interface Store {
   favorites: string[]
   notes: Record<string, string>
   overrides: Record<string, Overrides>
+  mode: ViewMode
+  onboarded: boolean
 }
 
 const KEY = 'tampaplex.v1'
 
 export function emptyStore(): Store {
-  return { favorites: [], notes: {}, overrides: {} }
+  return { favorites: [], notes: {}, overrides: {}, mode: 'simple', onboarded: false }
 }
 
 export function loadStore(): Store {
@@ -45,4 +49,12 @@ export function setNote(s: Store, id: string, note: string): Store {
 export function setOverride(s: Store, id: string, patch: Overrides): Store {
   const merged = { ...(s.overrides[id] ?? {}), ...patch }
   return { ...s, overrides: { ...s.overrides, [id]: merged } }
+}
+
+export function setMode(s: Store, mode: ViewMode): Store {
+  return { ...s, mode }
+}
+
+export function setOnboarded(s: Store, onboarded: boolean): Store {
+  return { ...s, onboarded }
 }

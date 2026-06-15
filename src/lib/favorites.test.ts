@@ -1,5 +1,13 @@
 import { describe, it, expect, beforeEach } from 'vitest'
-import { loadStore, saveStore, toggleFavorite, setOverride, emptyStore } from './favorites'
+import {
+  loadStore,
+  saveStore,
+  toggleFavorite,
+  setOverride,
+  emptyStore,
+  setMode,
+  setOnboarded,
+} from './favorites'
 
 beforeEach(() => localStorage.clear())
 
@@ -20,5 +28,19 @@ describe('favorites store', () => {
     saveStore(s)
     const loaded = loadStore()
     expect(loaded.overrides['s2'].rentTotal).toBe(4000)
+  })
+})
+
+describe('mode + onboarding', () => {
+  it('defaults to simple mode and not onboarded', () => {
+    const s = emptyStore()
+    expect(s.mode).toBe('simple')
+    expect(s.onboarded).toBe(false)
+  })
+  it('updates mode and onboarded immutably', () => {
+    const s = emptyStore()
+    expect(setMode(s, 'pro').mode).toBe('pro')
+    expect(setOnboarded(s, true).onboarded).toBe(true)
+    expect(s.mode).toBe('simple') // original unchanged
   })
 })
