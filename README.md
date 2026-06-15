@@ -32,6 +32,21 @@ in the detail view. The score recomputes live in your browser.
 For 3–4 unit properties the app also checks the **FHA self-sufficiency rule**
 (75% of rent must cover PITI) and warns you when a property would fail it.
 
+## New to real estate? Start in Simple mode
+
+The app opens in **Simple mode** (default): each listing leads with a plain-English
+verdict ("You'd pay about $X/mo to live here while tenants cover Y% of the costs"),
+four easy metrics with good / okay / concern dots, and Tampa-specific flags (flood
+zone, high insurance, older-building heads-up, neighborhood notes). Tap the **?** on
+any number for a plain definition, or open the **Guide** for "what a good Tampa plex
+looks like" plus a full glossary. Flip to **Pro mode** anytime for the dense
+dashboard, sliders, score breakdown, and a 5-year equity outlook — nothing is hidden,
+just one tap away.
+
+Flood zones come from FEMA's free public map service (looked up once during refresh).
+Every estimate is labeled as an estimate, and the app always tells you to verify with
+a lender, inspector, and the city.
+
 ## Tests
 
 ```bash
@@ -47,7 +62,22 @@ npm test
 - `scripts/make-sample.ts` — generates offline sample data
 - `src/components/*` — the dashboard UI
 
-## Next (Phase 2)
+## Go live (free, ~10 minutes)
 
-Deploy + daily auto-refresh via GitHub Actions — see
-`docs/superpowers/specs/2026-06-13-tampaplex-investment-finder-design.md`.
+The app can run as a free public website that refreshes itself daily — no servers,
+no monthly cost.
+
+1. Create a new GitHub repository (e.g. `tampaplex`).
+2. Push this project:
+   ```bash
+   git remote add origin https://github.com/<you>/tampaplex.git
+   git push -u origin main
+   ```
+3. In the repo: **Settings → Secrets and variables → Actions → New repository
+   secret**. Name it `RENTCAST_API_KEY` and paste your RentCast key.
+4. **Settings → Pages → Build and deployment → Source: GitHub Actions.**
+5. **Actions** tab → "Refresh data & deploy" → **Run workflow** (the first run).
+   When it finishes, your site is live at `https://<you>.github.io/tampaplex/`.
+
+After that it refreshes the Tampa listings and redeploys automatically every day
+(see `.github/workflows/refresh-and-deploy.yml`).
