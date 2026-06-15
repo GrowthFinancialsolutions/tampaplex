@@ -7,6 +7,9 @@ export interface Filters {
   newOnly: boolean
   favoritesOnly: boolean
   search: string
+  hideHighFlood: boolean
+  minYearBuilt: number // 0 = any
+  fhaPassOnly: boolean
 }
 
 export const DEFAULT_FILTERS: Filters = {
@@ -16,6 +19,9 @@ export const DEFAULT_FILTERS: Filters = {
   newOnly: false,
   favoritesOnly: false,
   search: '',
+  hideHighFlood: false,
+  minYearBuilt: 0,
+  fhaPassOnly: false,
 }
 
 export function FilterBar({ filters, onChange }: { filters: Filters; onChange: (f: Filters) => void }) {
@@ -77,6 +83,31 @@ export function FilterBar({ filters, onChange }: { filters: Filters; onChange: (
           onChange={(e) => set({ favoritesOnly: e.target.checked })}
         />{' '}
         ★ Saved
+      </label>
+      <Field label="Built after">
+        <input
+          type="number"
+          className="w-24 rounded border border-slate-300 px-2 py-1"
+          placeholder="any"
+          value={filters.minYearBuilt || ''}
+          onChange={(e) => set({ minYearBuilt: Number(e.target.value) || 0 })}
+        />
+      </Field>
+      <label className="flex items-center gap-1 text-sm">
+        <input
+          type="checkbox"
+          checked={filters.hideHighFlood}
+          onChange={(e) => set({ hideHighFlood: e.target.checked })}
+        />{' '}
+        Hide high flood risk
+      </label>
+      <label className="flex items-center gap-1 text-sm">
+        <input
+          type="checkbox"
+          checked={filters.fhaPassOnly}
+          onChange={(e) => set({ fhaPassOnly: e.target.checked })}
+        />{' '}
+        Passes FHA 3–4 unit rule
       </label>
     </div>
   )
