@@ -18,6 +18,7 @@ import { FilterBar, DEFAULT_FILTERS, type Filters } from './components/FilterBar
 import { AssumptionsPanel } from './components/AssumptionsPanel'
 import { ListingList } from './components/ListingList'
 import { SimpleListingCard } from './components/SimpleListingCard'
+import { ConversionCard } from './components/ConversionCard'
 import { ListingDetail } from './components/ListingDetail'
 import { ModeToggle } from './components/ModeToggle'
 import { Onboarding } from './components/Onboarding'
@@ -48,27 +49,44 @@ export default function App() {
     return map
   }, [data, store.overrides, assumptions])
 
-  const visible = useMemo(() => {
-    const list = (data?.listings ?? []).map((l) => ({
-      listing: l,
-      computed: computedById.get(l.id)!,
-    }))
+  const allItems = useMemo(
+    () => (data?.listings ?? []).map((l) => ({ listing: l, computed: computedById.get(l.id)! })),
+    [data, computedById],
+  )
+
+  // Filters shared by both categories (price, search, favorites, new, flood, year).
+  const baseMatch = (listing: Listing) => {
     const q = filters.search.trim().toLowerCase()
-    return list
-      .filter(
-        ({ listing, computed }) =>
-          listing.price <= filters.maxPrice &&
-          (filters.units === 0 || listing.units === filters.units) &&
-          computed.dealScore >= filters.minScore &&
-          (!filters.newOnly || listing.isNew) &&
-          (!filters.favoritesOnly || store.favorites.includes(listing.id)) &&
-          (q === '' || listing.address.toLowerCase().includes(q) || listing.zip.includes(q)) &&
-          (!filters.hideHighFlood || listing.floodZone?.risk !== 'high') &&
-          (filters.minYearBuilt === 0 || (listing.yearBuilt ?? 0) >= filters.minYearBuilt) &&
-          (!filters.fhaPassOnly || computed.fhaSelfSufficient),
-      )
-      .sort((a, b) => b.computed.dealScore - a.computed.dealScore)
-  }, [data, computedById, filters, store.favorites])
+    return (
+      listing.price <= filters.maxPrice &&
+      (!filters.newOnly || listing.isNew) &&
+      (!filters.favoritesOnly || store.favorites.includes(listing.id)) &&
+      (q === '' || listing.address.toLowerCase().includes(q) || listing.zip.includes(q)) &&
+      (!filters.hideHighFlood || listing.floodZone?.risk !== 'high') &&
+      (filters.minYearBuilt === 0 || (listing.yearBuilt ?? 0) >= filters.minYearBuilt)
+    )
+  }
+
+  const multiItems = useMemo(
+    () =>
+      allItems
+        .filter(
+          ({ listing, computed }) =>
+            listing.kind !== 'conversion' &&
+            baseMatch(listing) &&
+            (filters.units === 0 || listing.units === filters.units) &&
+            computed.dealScore >= filters.minScore &&
+            (!filters.fhaPassOnly || computed.fhaSelfSufficient),
+        )
+        .sort((a, b) => b.computed.dealScore - a.computed.dealScore),
+    [allItems, filters, store.favorites],
+  )
+
+  // Conversion candidates aren't scored deals, so they skip the unit/score filters.
+  const conversionItems = useMemo(
+    () => allItems.filter(({ listing }) => listing.kind === 'conversion' && baseMatch(listing)),
+    [allItems, filters, store.favorites],
+  )
 
   const open = openId ? (data?.listings ?? []).find((l) => l.id === openId) : undefined
 
@@ -128,7 +146,7 @@ export default function App() {
           <FilterBar filters={filters} onChange={setFilters} />
           {mode === 'simple' ? (
             <div className="space-y-3">
-              {visible.map(({ listing, computed }) => (
+              {multiItems.map(({ listing, computed }) => (
                 <SimpleListingCard
                   key={listing.id}
                   listing={listing}
@@ -138,17 +156,38 @@ export default function App() {
                   onOpen={setOpenId}
                 />
               ))}
-              {visible.length === 0 && (
+              {multiItems.length === 0 && (
                 <p className="py-12 text-center text-slate-400">No listings match your filters.</p>
               )}
             </div>
           ) : (
             <ListingList
-              items={visible}
+              items={multiItems}
               favorites={store.favorites}
               onToggleFavorite={(id) => setStore((s) => toggleFavorite(s, id))}
               onOpen={setOpenId}
             />
+          )}
+
+          {conversionItems.length > 0 && (
+            <section className="space-y-3">
+              <div className="border-t border-slate-200 pt-4">
+                <h2 className="font-semibold text-slate-800">🔧 Homes you could add a unit to</h2>
+                <p className="text-sm text-slate-500">
+                  Single-family homes that may allow a second unit (ADU or duplex conversion) so you
+                  could house-hack — candidates to investigate, not scored deals. Verify with the
+                  City of Tampa.
+                </p>
+              </div>
+              {conversionItems.map(({ listing }) => (
+                <ConversionCard
+                  key={listing.id}
+                  listing={listing}
+                  isFavorite={store.favorites.includes(listing.id)}
+                  onToggleFavorite={(id) => setStore((s) => toggleFavorite(s, id))}
+                />
+              ))}
+            </section>
           )}
         </div>
         {mode === 'pro' && (

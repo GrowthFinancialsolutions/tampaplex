@@ -66,6 +66,10 @@ export interface FloodZone {
 export type Rating = 'good' | 'okay' | 'concern'
 export type ViewMode = 'simple' | 'pro'
 
+// 'multi' = existing 2-4 unit property; 'conversion' = single-family that could
+// gain a unit (ADU or duplex conversion) — a candidate to investigate, not a scored deal.
+export type ListingKind = 'multi' | 'conversion'
+
 export interface Listing extends ListingInputs {
   id: string
   address: string
@@ -84,6 +88,10 @@ export interface Listing extends ListingInputs {
   rentSource: RentSource
   taxSource: TaxSource
   floodZone?: FloodZone
+  kind?: ListingKind // undefined treated as 'multi'
+  zoning?: string
+  lotSqft?: number
+  conversionNote?: string
   photoUrl?: string
   listingUrl?: string
   computed: Computed

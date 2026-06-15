@@ -5,33 +5,71 @@ import { mergeListings, estimateRentTotal } from '../src/lib/refresh-core'
 import { computeMetrics } from '../src/lib/math'
 import { DEFAULT_ASSUMPTIONS, NEW_LISTING_DAYS } from '../src/config/assumptions'
 import type { RawSaleListing } from '../src/lib/rentcast'
-import type { ListingsFile, RentSource } from '../src/types'
+import type { ListingsFile, ListingKind, RentSource } from '../src/types'
 
-// Real Tampa 2–4 unit for-sale listings, factual data points (address, price,
-// beds/baths/sqft) gathered by browsing Zillow. No photos or marketing copy.
-// Rents are ESTIMATED by the app (labeled as such) until refined. Re-run this
-// builder whenever you want to refresh the set: `npm run tampa`.
+// Real Tampa listings, factual data points gathered by browsing Zillow (no photos
+// or marketing copy). City of Tampa only. Rents are ESTIMATED unless a listing
+// stated its rent roll. Re-run with `npm run tampa`.
 const listingsRaw: RawSaleListing[] = [
+  // --- Existing 2–4 unit (multi-family) ---
   { id: 'z-alaska-8405', formattedAddress: '8405 N Alaska St, Tampa, FL 33604', zipCode: '33604', bedrooms: 4, bathrooms: 2, squareFootage: 1624, price: 289900, propertyType: 'Multi-Family' },
   { id: 'z-brooks-8103', formattedAddress: '8103 N Brooks St, Tampa, FL 33604', zipCode: '33604', bedrooms: 4, bathrooms: 2, squareFootage: 1366, price: 295000, propertyType: 'Multi-Family' },
+  { id: 'z-13th-8304', formattedAddress: '8304 N 13th St, Tampa, FL 33604', zipCode: '33604', bedrooms: 4, bathrooms: 2, squareFootage: 1484, price: 340000, propertyType: 'Multi-Family' },
   { id: 'z-harper-2405', formattedAddress: '2405 Harper St, Tampa, FL 33605', zipCode: '33605', bedrooms: 5, bathrooms: 3, squareFootage: 1140, price: 349000, propertyType: 'Multi-Family' },
   { id: 'z-floribraska-415', formattedAddress: '415 E Floribraska Ave, Tampa, FL 33603', zipCode: '33603', bedrooms: 4, bathrooms: 2, squareFootage: 1736, price: 365000, propertyType: 'Multi-Family' },
   { id: 'z-howard-4103', formattedAddress: '4103 N Howard Ave, Tampa, FL 33607', zipCode: '33607', bedrooms: 6, bathrooms: 2, squareFootage: 1864, price: 464900, propertyType: 'Multi-Family' },
-  { id: 'z-kissimmee-6713', formattedAddress: '6713 S Kissimmee St, Tampa, FL 33616', zipCode: '33616', bedrooms: 8, bathrooms: 4, squareFootage: 2268, price: 585000, propertyType: 'Multi-Family' },
   { id: 'z-columbus-2313', formattedAddress: '2313 E Columbus Dr, Tampa, FL 33605', zipCode: '33605', bedrooms: 6, bathrooms: 4, squareFootage: 2360, price: 699999, yearBuilt: 2024, propertyType: 'Multi-Family' },
-  // (3012 S Esperanza Ave dropped: it's a single 4-bed townhome — one side of a duplex,
-  // not a 2–4 unit property you can house-hack.)
+  { id: 'z-wcolumbus-316', formattedAddress: '316 W Columbus Dr, Tampa, FL 33602', zipCode: '33602', bedrooms: 8, bathrooms: 6, squareFootage: 2606, price: 999999, propertyType: 'Multi-Family' },
+  // (Dropped 6713 S Kissimmee St 33616 — Port Tampa, excluded per request to stay in
+  // central Tampa; and 3012 S Esperanza — a single townhome, not multi-unit.)
+
+  // --- Single-family conversion / add-a-unit candidates ---
+  { id: 'z-chelsea-805', formattedAddress: '805 E Chelsea St, Tampa, FL 33603', zipCode: '33603', bedrooms: 3, bathrooms: 2, squareFootage: 1428, price: 444900, yearBuilt: 1913, propertyType: 'Single Family' },
+  { id: 'z-cayuga-1404', formattedAddress: '1404 E Cayuga St, Tampa, FL 33603', zipCode: '33603', bedrooms: 4, bathrooms: 2, squareFootage: 1610, price: 459900, propertyType: 'Single Family' },
 ]
 
-// Real data read from each listing's description (rent rolls / unit counts).
-// `rent` is total monthly gross; `units` corrects the bedroom-based heuristic.
-const OVERRIDES: Record<string, { units?: number; rent?: number; rentSource?: RentSource }> = {
+interface Override {
+  units?: number
+  rent?: number
+  rentSource?: RentSource
+  kind?: ListingKind
+  zoning?: string
+  lotSqft?: number
+  conversionNote?: string
+  listingUrl?: string
+}
+
+// Real data read from each listing's description (rent rolls, unit counts, zoning, lot).
+const OVERRIDES: Record<string, Override> = {
   'z-alaska-8405': { rent: 2700, rentSource: 'manual' }, // both units rented: $1,400 + $1,300
   'z-harper-2405': { rent: 2650, rentSource: 'manual' }, // $1,500 + $1,150 gross
   'z-floribraska-415': { rent: 3200, rentSource: 'manual' }, // 1 unit leased $1,600; vacant unit comparable
   'z-columbus-2313': { units: 2, rent: 5000, rentSource: 'manual' }, // duplex, ~$2,500/unit (new construction, projected)
   'z-howard-4103': { units: 2 }, // "two 3-bedroom units" = duplex, not triplex (rent re-estimated)
-  // z-brooks-8103 (3bd+1bd duplex) and z-kissimmee-6713 (four 2bd units, vacant): no stated rent, keep estimate
+  'z-wcolumbus-316': { units: 4 }, // large multi
+  'z-chelsea-805': {
+    kind: 'conversion',
+    units: 1,
+    rent: 0,
+    rentSource: 'estimated',
+    zoning: 'SH-RS',
+    lotSqft: 10150,
+    conversionNote:
+      'Single-family home on an oversized 10,150 sqft lot in Seminole Heights. Florida’s 2025 ADU law and Tampa’s ADU rules may allow adding a backyard accessory unit — live in the house, rent the ADU. It is NOT a by-right duplex; confirm ADU eligibility with the City of Tampa and budget for the build.',
+    listingUrl: 'https://www.zillow.com/homedetails/805-E-Chelsea-St-Tampa-FL-33603/45094106_zpid/',
+  },
+  'z-cayuga-1404': {
+    kind: 'conversion',
+    units: 1,
+    rent: 0,
+    rentSource: 'estimated',
+    zoning: 'SH-RS',
+    lotSqft: 11326,
+    conversionNote:
+      'Single-family home on a large 0.26-acre lot in Seminole Heights — room for a detached accessory dwelling unit (ADU) to rent under Florida’s 2025 ADU law / Tampa rules. Not a by-right duplex; verify ADU eligibility with the City of Tampa and budget for construction.',
+    listingUrl: 'https://www.zillow.com/homes/1404-E-Cayuga-St-Tampa-FL-33603_rb/',
+  },
+  // z-brooks-8103, z-13th-8304: no stated rent, keep estimate + heuristic units.
 }
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..')
@@ -44,10 +82,15 @@ const listings = mergeListings(listingsRaw, [], {
   newListingDays: NEW_LISTING_DAYS,
 })
 
-// Apply real rent rolls + corrected unit counts, then recompute metrics.
+// Apply real rent rolls, corrected unit counts, and conversion metadata; recompute.
 for (const l of listings) {
   const o = OVERRIDES[l.id]
   if (!o) continue
+  if (o.kind) l.kind = o.kind
+  if (o.zoning) l.zoning = o.zoning
+  if (o.lotSqft != null) l.lotSqft = o.lotSqft
+  if (o.conversionNote) l.conversionNote = o.conversionNote
+  if (o.listingUrl) l.listingUrl = o.listingUrl
   if (o.units != null) l.units = o.units
   if (o.rent != null) {
     l.rentTotal = o.rent
