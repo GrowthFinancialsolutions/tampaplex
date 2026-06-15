@@ -18,8 +18,20 @@ export function estimateInsuranceAnnual(price: number): number {
   return Math.max(3000, Math.round(price * 0.01))
 }
 
-export function estimateRentTotal(price: number): number {
-  return Math.round(price * 0.007)
+// Rough Tampa gross rent per unit by bedrooms-per-unit (2026 ballpark, estimate only).
+const TAMPA_RENT_BY_BEDS: Record<number, number> = { 0: 1300, 1: 1350, 2: 1650, 3: 2050, 4: 2400 }
+
+/**
+ * Estimate total monthly gross rent for a multi-family property.
+ * Uses a per-unit, bedroom-based market estimate (more realistic for 2-4 unit
+ * homes than a flat % of price). Falls back to a price-based guess when the
+ * bedroom count is unknown. Always an ESTIMATE — refine with real rents.
+ */
+export function estimateRentTotal(price: number, beds = 0, units = 1): number {
+  const u = units > 0 ? units : 1
+  if (beds <= 0) return Math.round(price * 0.007)
+  const bedsPerUnit = Math.max(1, Math.min(4, Math.round(beds / u)))
+  return TAMPA_RENT_BY_BEDS[bedsPerUnit] * u
 }
 
 export interface BuildOptions {
@@ -48,7 +60,7 @@ export function buildListing(
     rentTotal = prev.rentTotal
     rentSource = prev.rentSource
   } else {
-    rentTotal = estimateRentTotal(price)
+    rentTotal = estimateRentTotal(price, raw.bedrooms ?? 0, units)
     rentSource = 'estimated'
   }
 

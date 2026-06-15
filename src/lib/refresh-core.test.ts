@@ -3,6 +3,7 @@ import {
   mergeListings,
   estimateUnits,
   estimateInsuranceAnnual,
+  estimateRentTotal,
   recompute,
   buildListing,
 } from './refresh-core'
@@ -29,6 +30,13 @@ describe('estimate helpers', () => {
   })
   it('estimates 2 units by default', () => {
     expect(estimateUnits({ id: 'a', bedrooms: 4 })).toBe(2)
+  })
+  it('estimates per-unit rent for a duplex from bedroom count', () => {
+    // 4 beds / 2 units = 2 bd per unit -> $1,650/unit -> $3,300 total
+    expect(estimateRentTotal(290000, 4, 2)).toBe(3300)
+  })
+  it('falls back to a price-based estimate when bedroom count is unknown', () => {
+    expect(estimateRentTotal(300000, 0, 2)).toBe(2100)
   })
 })
 
