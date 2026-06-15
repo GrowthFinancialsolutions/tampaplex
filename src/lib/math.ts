@@ -110,3 +110,39 @@ export function computeMetrics(inp: ListingInputs, a: Assumptions): Computed {
     scoreBreakdown,
   }
 }
+
+export interface EquityProjectionInput {
+  price: number
+  loan: number
+  annualRate: number
+  termYears: number
+  appreciationAnnual: number
+  years: number
+}
+
+export interface EquityProjection {
+  years: number
+  futureValue: number
+  loanBalance: number
+  estimatedEquity: number
+}
+
+/** Estimated equity after N years: appreciation on value + principal paid down. */
+export function equityProjection(p: EquityProjectionInput): EquityProjection {
+  const futureValue = p.price * Math.pow(1 + p.appreciationAnnual, p.years)
+  const payment = monthlyMortgage(p.loan, p.annualRate, p.termYears)
+  const i = p.annualRate / 12
+  const months = p.years * 12
+  let balance = p.loan
+  for (let m = 0; m < months; m++) {
+    const interest = balance * i
+    balance = balance - (payment - interest)
+  }
+  balance = Math.max(0, balance)
+  return {
+    years: p.years,
+    futureValue,
+    loanBalance: balance,
+    estimatedEquity: futureValue - balance,
+  }
+}

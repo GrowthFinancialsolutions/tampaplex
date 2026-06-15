@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { monthlyMortgage, fhaLoan, lerpScore, computeMetrics } from './math'
+import { monthlyMortgage, fhaLoan, lerpScore, computeMetrics, equityProjection } from './math'
 import { DEFAULT_ASSUMPTIONS } from '../config/assumptions'
 import type { ListingInputs } from '../types'
 
@@ -93,5 +93,33 @@ describe('computeMetrics', () => {
   it('a higher-rent property scores better', () => {
     const better = computeMetrics({ ...DUPLEX, rentTotal: 5200 }, DEFAULT_ASSUMPTIONS)
     expect(better.dealScore).toBeGreaterThan(c.dealScore)
+  })
+})
+
+describe('equityProjection', () => {
+  it('grows equity from appreciation + principal paydown over N years', () => {
+    const r = equityProjection({
+      price: 700000,
+      loan: 660000,
+      annualRate: 0.069,
+      termYears: 30,
+      appreciationAnnual: 0.03,
+      years: 5,
+    })
+    expect(r.years).toBe(5)
+    expect(r.futureValue).toBeGreaterThan(700000) // appreciated
+    expect(r.loanBalance).toBeLessThan(660000) // paid down
+    expect(r.estimatedEquity).toBeGreaterThan(700000 - 660000) // > starting equity
+  })
+  it('handles a zero-interest loan without NaN', () => {
+    const r = equityProjection({
+      price: 100000,
+      loan: 100000,
+      annualRate: 0,
+      termYears: 30,
+      appreciationAnnual: 0,
+      years: 5,
+    })
+    expect(Number.isFinite(r.estimatedEquity)).toBe(true)
   })
 })
