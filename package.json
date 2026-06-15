@@ -10,7 +10,8 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "refresh": "tsx scripts/refresh.ts",
-    "sample": "tsx scripts/make-sample.ts"
+    "sample": "tsx scripts/make-sample.ts",
+    "tampa": "tsx scripts/make-tampa-data.ts"
   },
   "dependencies": {
     "react": "^18.3.1",
